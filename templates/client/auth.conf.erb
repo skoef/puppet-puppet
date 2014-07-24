@@ -27,7 +27,7 @@ path /report
 method save
 allow *
 
-# inconditionnally allow access to all files services
+# Unconditionally allow access to all files services
 # which means in practice that fileserver.conf will
 # still be used
 path /file
@@ -49,7 +49,7 @@ auth any
 method find, save
 allow *
 
-# this one is not stricly necessary, but it has the merit
+# this one is not strictly necessary, but it has the merit
 # to show the default policy which is deny everything else
 path /
 auth any

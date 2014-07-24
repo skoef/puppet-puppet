@@ -61,17 +61,22 @@ class puppet::params {
   $croncommand = $major_version ? {
     '0.2' => $::operatingsystem ? {
       /(?i:OpenBSD)/ => '/usr/local/bin/puppetd --onetime --pidfile /var/run/puppet-cron.pid >/dev/null 2>&1',
+      /(?i:FreeBSD)/ => '/usr/local/bin/puppet --onetime --pidfile /var/run/puppet/puppet-cron.pid >/dev/null 2>&1',
       default        => '/usr/bin/puppetd --onetime --pidfile /var/run/puppet-cron.pid',
     },
     '2.x' => $::operatingsystem ? {
       /(?i:OpenBSD)/ => '/usr/local/bin/puppet agent --onetime --pidfile /var/run/puppet-cron.pid >/dev/null 2>&1',
+      /(?i:FreeBSD)/ => '/usr/local/bin/puppet agent --onetime --pidfile /var/run/puppet/puppet-cron.pid >/dev/null 2>&1',
       default        => '/usr/bin/puppet agent --onetime --pidfile /var/run/puppet-cron.pid',
     }
   }
   $prerun_command = ''
   $postrun_command = ''
   $externalnodes = false
-  $external_nodes_script = '/etc/puppet/node.rb'
+  $external_nodes_script = $::operatingsystem ? {
+    /(?i:FreeBSD)/ => '/usr/local/etc/puppet/node.rb',
+    default        => '/etc/puppet/node.rb',
+  }
   $passenger = false
   $passenger_type = 'apache'
   $passenger_approot = '/etc/puppet/rack'
@@ -90,6 +95,7 @@ class puppet::params {
   $package_server = $::operatingsystem ? {
     /(?i:Debian|Ubuntu|Mint)/ => 'puppetmaster',
     /(?i:Solaris)/            => 'puppetmaster',
+    /(?i:FreeBSD)/            => 'puppet',
     default                   => 'puppet-server',
   }
 
@@ -145,6 +151,7 @@ class puppet::params {
 
   $ssl_dir = $::operatingsystem ? {
     /(?i:OpenBSD)/ => '/etc/puppet/ssl',
+    /(?i:FreeBSD)/ => '/var/puppet/ssl',
     /(?i:Windows)/ => "${::windows_common_appdata}\\PuppetLabs\\puppet\\etc\\ssl",
     default        => '/var/lib/puppet/ssl',
   }
@@ -218,16 +225,19 @@ class puppet::params {
 
   $process_group = $::operatingsystem ? {
     /(?i:OpenBSD)/ => 'wheel',
+    /(?i:FreeBSD)/ => 'wheel',
     default        => 'root',
   }
 
   $config_dir = $::operatingsystem ? {
     /(?i:Windows)/ => "${::windows_common_appdata}\\PuppetLabs\\puppet\\etc",
+    /(?i:FreeBSD)/ => '/usr/local/etc/puppet',
     default        => '/etc/puppet',
   }
 
   $config_file = $::operatingsystem ? {
     /(?i:Windows)/ => "${::windows_common_appdata}\\PuppetLabs\\puppet\\etc\\puppet.conf",
+    /(?i:FreeBSD)/ => '/usr/local/etc/puppet/puppet.conf',
     default        => '/etc/puppet/puppet.conf',
   }
 
@@ -243,6 +253,7 @@ class puppet::params {
 
   $config_file_group = $::operatingsystem ? {
     /(?i:OpenBSD)/ => 'wheel',
+    /(?i:FreeBSD)/ => 'wheel',
     /(?i:Windows)/ => 'S-1-5-18',
     default        => 'root',
   }
@@ -250,6 +261,7 @@ class puppet::params {
   $config_file_init = $::operatingsystem ? {
     /(?i:Debian|Ubuntu|Mint)/ => '/etc/default/puppet',
     /(?i:Solaris)/            => '',
+    /(?i:FreeBSD)/            => '',
     default                   => '/etc/sysconfig/puppet',
   }
 
@@ -272,6 +284,7 @@ class puppet::params {
 
   $data_dir = $::operatingsystem ? {
     /(?i:OpenBSD)/ => '/var/puppet',
+    /(?i:FreeBSD)/ => '/var/puppet',
     /(?i:Windows)/ => "${::windows_common_appdata}\\PuppetLabs\\puppet\\var",
     default        => '/var/lib/puppet',
   }
@@ -331,6 +344,7 @@ class puppet::params {
         default  => 'sqlite3-ruby',
     },
     /(?i:Solaris)/ => '',
+    /(?i:FreeBSD)/ => 'rubygem-sqlite3-ruby',
     default        => 'sqlite3-ruby',
   }
 

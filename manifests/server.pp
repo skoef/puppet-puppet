@@ -9,11 +9,14 @@
 #
 class puppet::server inherits puppet {
   ### Managed resources
-  package { 'puppet_server':
-    ensure   => $puppet::manage_package_server,
-    name     => $puppet::package_server,
-    notify   => $puppet::manage_service_server_autorestart,
-    provider => $puppet::package_provider,
+  if $puppet::package_server != $puppet::package {
+    package { 'puppet_server':
+      ensure   => $puppet::manage_package_server,
+      name     => $puppet::package_server,
+      notify   => $puppet::manage_service_server_autorestart,
+      provider => $puppet::package_provider,
+      before   => Service['puppet_server'],
+    }
   }
 
   service { 'puppet_server':
@@ -22,7 +25,6 @@ class puppet::server inherits puppet {
     enable     => $puppet::manage_service_server_enable,
     hasstatus  => $puppet::service_status,
     pattern    => $puppet::process_server,
-    require    => Package['puppet_server'],
   }
 
   file { 'fileserver.conf':

@@ -687,6 +687,11 @@ class puppet (
     client => undef,
   }
 
+  $manage_firewall_direction = $bool_listen ? {
+    true  => 'input',
+    false => 'output',
+  }
+
   $version_puppet = split($::puppetversion, '[.]')
   $version_major = $version_puppet[0]
 
@@ -698,12 +703,12 @@ class puppet (
   }
 
   service { 'puppet':
-    ensure     => $puppet::manage_service_ensure,
-    name       => $puppet::service,
-    enable     => $puppet::manage_service_enable,
-    hasstatus  => $puppet::service_status,
-    pattern    => $puppet::process,
-    require    => Package['puppet'],
+    ensure    => $puppet::manage_service_ensure,
+    name      => $puppet::service,
+    enable    => $puppet::manage_service_enable,
+    hasstatus => $puppet::service_status,
+    pattern   => $puppet::process,
+    require   => Package['puppet'],
   }
 
   if ($::operatingsystem == 'Ubuntu'
@@ -828,16 +833,14 @@ class puppet (
 
 
   ### Firewall management, if enabled ( firewall => true )
-  if $puppet::bool_firewall == true
-  and $puppet::bool_listen == true {
-    firewall { "puppet_${puppet::protocol}_${puppet::port_listen}":
+  if $puppet::bool_firewall == true {
+    firewall::rule { "puppet_${puppet::protocol}_${puppet::port_listen}":
       source      => $puppet::firewall_src,
       destination => $puppet::firewall_dst,
       protocol    => $puppet::protocol,
       port        => $puppet::port_listen,
       action      => 'allow',
-      direction   => 'input',
-      tool        => $puppet::firewall_tool,
+      direction   => $manage_firewall_direction,
       enable      => $puppet::manage_firewall,
     }
   }
@@ -867,10 +870,10 @@ class puppet (
   case $::operatingsystem {
     /(?i:OpenBSD|FreeBSD)/: {
       cron { 'puppet_cron':
-        ensure   => $puppet::manage_file_cron,
-        command  => $puppet::croncommand,
-        user     => $puppet::process_user,
-        minute   => [ $puppet::tmp_cronminute , $puppet::tmp_cronminute2 ],
+        ensure  => $puppet::manage_file_cron,
+        command => $puppet::croncommand,
+        user    => $puppet::process_user,
+        minute  => [ $puppet::tmp_cronminute , $puppet::tmp_cronminute2 ],
       }
     }
     /(?i:Windows)/: { }
